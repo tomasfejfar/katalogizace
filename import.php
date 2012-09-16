@@ -15,6 +15,7 @@ do {
 $items = array();
 $item = array();
 $item['status'] = 'OK';
+$item['colMap'] = array();
 $i = 0;
 while ($reader->name == 'section-02') {
     $dom = new DOMDocument();

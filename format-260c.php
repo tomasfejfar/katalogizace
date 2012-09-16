@@ -53,7 +53,7 @@ function removeTrailingChar($data)
 
 $db = Db::getDb();
 $c = new Zend_Console_Getopt('f');
-$query = "SELECT LeaveNumber(value), value, id, `key`
+$query = "SELECT LeaveNumber(value), value, id, `itemKey`
 FROM import
 WHERE col = '260' AND subcol = 'c' AND LeaveNumber(value) <> value";
 $items = $db->fetchAll($query, Zend_Db::FETCH_ASSOC);
@@ -71,10 +71,21 @@ foreach ($items as $id => $item) {
         $item['value'] = $function($item['value']);
     }
     if (!preg_match('/^[0-9]+$/', $item['value'])) {
-        echo sprintf("\t%s: '%s'" . PHP_EOL, $item['key'], $item['value']);
+        echo sprintf("\t%s: '%s'" . PHP_EOL, $item['itemKey'], $item['value']);
     }
-    
-    if ($c->getOption('f')) {
-        $db->update('import', array('value' => max($item['listItems'])), $db->quoteInto('id = ?', $item['id']));
+} 
+
+
+if ($c->getOption('f')) {
+    echo 'Starting the update' . PHP_EOL;
+    foreach ($items as $id => $item) {
+        $db->update(
+            'import', 
+            array(
+                'value' => $item['value']
+            ), 
+            $db->quoteInto('id = ?', $item['id'])
+        );
+        if ($cnt) echo sprintf('Updated id:%s with "%s"' . PHP_EOL, $item['id'], $item['value']);
     }
 } 

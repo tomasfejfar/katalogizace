@@ -7,7 +7,7 @@ $db = Zend_Db::factory('pdo_mysql', array(
 		'password' => '',
 	)); 
 
-$query = 'SELECT LeaveNumber(value), value, id, `key`
+$query = 'SELECT LeaveNumber(value), value, id, `itemKey`
 FROM import
 WHERE col = \'o26\'
 AND LeaveNumber(value) <> value AND LENGTH(LeaveNumber(value)) <> 4';

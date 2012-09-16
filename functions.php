@@ -32,7 +32,9 @@ function parseItem (SimpleXMLElement $e, &$currentItem)
     } else {
         $item['col'] = $col1;
     }
+    $col = $item['col'];
     if (preg_match('/(\|([a-z0-9]{1}) ([^|]+))+/', $col2, $matches)) {
+        // somewhere here colId
         $col2 = trim($col2, '| ');
         $parts = explode('|', $col2);
         $matches = array();
@@ -47,13 +49,17 @@ function parseItem (SimpleXMLElement $e, &$currentItem)
         $matches = array(array('', '', $col2));
     }
     if ($col1 == '001') {
-        $currentItem['key'] = trim($col2);
+        $currentItem['itemKey'] = trim($col2);
     }
+    $currentItem['colMap'][$col] = isset($currentItem['colMap'][$col]) ? $currentItem['colMap'][$col] + 1 : 1; 
     foreach ($matches as $match) {
+        $columnId = $currentItem['colMap'][$col];
         $tmpItem = $item;
+        $tmpItem['colId'] = $columnId;
         $tmpItem['subcol'] = trim($match[1]);
         $tmpItem['value'] = trim($match[2]);
         $currentItem[] = $tmpItem;
+        
          //echo PHP_EOL . implode("\t|\t",$tmpItem) . PHP_EOL;
     }
     return true;
@@ -79,9 +85,9 @@ function insertItemToDb ($item, $itemId = null)
         $itemId = $db->fetchOne($itemIdSql) + 1;
     }
     unset($item['status']);
-    $key = $item['key'];
-    unset($item['key']);
-    $tmp = array('itemId' => $itemId, 'key' => $key);
+    $key = $item['itemKey'];
+    unset($item['itemKey']);
+    $tmp = array('itemId' => $itemId, 'itemKey' => $key);
     foreach ($item as $row) {
         $arr = array_merge($tmp, $row);
         $db->insert('import', $arr);
@@ -101,9 +107,10 @@ function insertItemsToDb ($items)
     $start = time();
     foreach ($items as $item) {
         unset($item['status']);
-        $key = $item['key'];
-        unset($item['key']);
-        $tmp = array('itemId' => $itemId, 'key' => $key);
+        unset($item['colMap']);
+        $key = $item['itemKey'];
+        unset($item['itemKey']);
+        $tmp = array('itemId' => $itemId, 'itemKey' => $key);
         foreach ($item as $row) {
             $arr = array_merge($tmp, $row);
             $db->insert('import', $arr);
