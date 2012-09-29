@@ -34,7 +34,7 @@ function addSpaceAfterDot($data)
 
 
 $db = Db::getDb();
-$c = new Zend_Console_Getopt('f');
+$c = new Zend_Console_Getopt('fv');
 $query = "SELECT i.value, i.id, i.`itemKey`
 FROM import AS i
 RIGHT JOIN import AS trl ON (i.itemId = trl.itemId AND i.colId = trl.colId AND trl.col='700' AND trl.subcol='4' AND trl.value='trl')
@@ -50,14 +50,18 @@ $cleaners = array(
 $ignoreList = array(
     'Krecar z Růžokvětu, Jarmil'
 );
-foreach ($items as $id => $item) {
+foreach ($items as $id => &$item) {
+    $before = $item['value'];
     foreach ($cleaners as $function) {
         $item['value'] = $function($item['value']);
     }
+    $after = $item['value'];
     if (!preg_match('/^\w+(-\w+){0,1}, \w+(\.){0,1}( (\w+)(\.){0,1})*( ){0,1},$/u', $item['value'])) {
         if (!in_array($item['value'], $ignoreList)) {
             echo sprintf("\t%s: '%s'" . PHP_EOL, $item['itemKey'], $item['value']);
         }
+        } elseif (($before !== $after) && $c->getOption('v')) {
+        echo sprintf("%s\t=>\t%s". PHP_EOL, $before, $after);
     }
 } 
 

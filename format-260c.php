@@ -44,7 +44,7 @@ function fixYearSpan($data)
 
 function removeTrailingChar($data)
 {
-    if (preg_match('/[,-\?]$/', $data)) {
+    if (preg_match('/[-,\?\.;]$/', $data)) {
         return substr($data, 0, -1);
     }
     return $data;
@@ -52,7 +52,7 @@ function removeTrailingChar($data)
 
 
 $db = Db::getDb();
-$c = new Zend_Console_Getopt('f');
+$c = new Zend_Console_Getopt('fv');
 $query = "SELECT LeaveNumber(value), value, id, `itemKey`
 FROM import
 WHERE col = '260' AND subcol = 'c' AND LeaveNumber(value) <> value";
@@ -66,12 +66,16 @@ $cleaners = array(
     'fixYearSpan',
     'removeTrailingChar'
 );
-foreach ($items as $id => $item) {
+foreach ($items as $id => &$item) {
+    $before = $item['value'];
     foreach ($cleaners as $function) {
         $item['value'] = $function($item['value']);
     }
+    $after = $item['value'];
     if (!preg_match('/^[0-9]+$/', $item['value'])) {
         echo sprintf("\t%s: '%s'" . PHP_EOL, $item['itemKey'], $item['value']);
+    } elseif (($before !== $after) && $c->getOption('v')) {
+        echo sprintf("%s\t=>\t%s". PHP_EOL, $before, $after);
     }
 } 
 
